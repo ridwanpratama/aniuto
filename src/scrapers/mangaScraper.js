@@ -10,7 +10,6 @@ async function scrapeUrl(mangaUrl) {
             const html = response.data;
             const $ = cheerio.load(html);
 
-            // Deklarasikan variabel categories di luar loop
             const categoryTags = $('.seriestugenre a');
             const categories = categoryTags.map((index, element) => $(element).text()).get();
 
@@ -19,17 +18,15 @@ async function scrapeUrl(mangaUrl) {
                 const chapter = $(element).find('.chapternum').text();
                 const chapterUrl = $(element).attr('href');
                 chapters.push({
-                    chapter: chapter,
+                    chapter,
                     url: chapterUrl,
                 });
             });
 
-            const sortedChapters = chapters.sort((a, b) => {
-                return parseInt(b.chapter) - parseInt(a.chapter);
-            });
+            const sortedChapters = chapters.sort((a, b) => parseInt(b.chapter) - parseInt(a.chapter));
 
             const mangaData = new MangaUrl({
-                text: text,
+                text,
                 category: categories.join(', '),
                 chapters: sortedChapters.map((chapter) => ({
                     chapter: chapter.chapter,
@@ -37,20 +34,15 @@ async function scrapeUrl(mangaUrl) {
                 })),
             });
 
-            mangaData.save()
-                .then(() => {
-                    console.log('Data manga-url berhasil disimpan');
-                })
-                .catch((error) => {
-                    console.error('Gagal menyimpan data manga-url:', error);
-                });
+            await mangaData.save();
+            console.log('Data manga-url berhasil disimpan');
 
             for (const chapter of sortedChapters) {
                 await scrapeChapterImages(chapter.url, text, chapter.chapter);
             }
         }
     } catch (error) {
-        console.log('Error:', error);
+        console.error('Error:', error);
     }
 }
 
