@@ -9,13 +9,18 @@ async function scrapeUrl(mangaUrl) {
         if (response.status === 200) {
             const html = response.data;
             const $ = cheerio.load(html);
+
+            // Deklarasikan variabel categories di luar loop
+            const categoryTags = $('.seriestugenre a');
+            const categories = categoryTags.map((index, element) => $(element).text()).get();
+
             const chapters = [];
             $('.eph-num a').each((index, element) => {
                 const chapter = $(element).find('.chapternum').text();
                 const chapterUrl = $(element).attr('href');
                 chapters.push({
                     chapter: chapter,
-                    url: chapterUrl
+                    url: chapterUrl,
                 });
             });
 
@@ -25,9 +30,10 @@ async function scrapeUrl(mangaUrl) {
 
             const mangaData = new MangaUrl({
                 text: text,
-                chapters: sortedChapters.map(chapter => ({
+                category: categories.join(', '),
+                chapters: sortedChapters.map((chapter) => ({
                     chapter: chapter.chapter,
-                    images: []
+                    images: [],
                 })),
             });
 
@@ -42,12 +48,12 @@ async function scrapeUrl(mangaUrl) {
             for (const chapter of sortedChapters) {
                 await scrapeChapterImages(chapter.url, text, chapter.chapter);
             }
-
         }
     } catch (error) {
         console.log('Error:', error);
     }
 }
+
 
 async function scrapeAllUrls(mangaUrls) {
     for (const mangaUrl of mangaUrls) {

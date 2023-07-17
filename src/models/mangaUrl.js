@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const mangaUrlSchema = new mongoose.Schema({
   text: { type: String, required: true },
+  category: { type: String, required: true },
   chapters: {
     type: [
       {
